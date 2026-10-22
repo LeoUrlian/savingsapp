@@ -63,9 +63,10 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-zinc-50 p-8 font-sans text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-4xl font-bold tracking-tight">Migra</h1>
+        <h1 className="text-4xl font-bold tracking-tight">SavingsApp</h1>
         <p className="max-w-md text-zinc-600 dark:text-zinc-400">
-          Plataforma de migração e validação de dados assistida por IA.
+          Defina metas de poupança, acompanhe o progresso com gráficos e veja
+          estimativas para alcançar seu objetivo — em Real, Dólar e Euro.
         </p>
       </div>
 

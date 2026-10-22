@@ -1,9 +1,10 @@
-# Migra
+# SavingsApp
 
-Plataforma de **migração e validação de dados assistida por IA**. Conecta dois
-bancos (origem v1, destino v2), você descreve o de-para em linguagem natural, a
-IA propõe o SQL de migração + checks de validação, o sistema roda em dry-run,
-mostra diffs e só então aplica — gerando o runbook automaticamente.
+Aplicação de **metas de poupança** assistida por dados: você define um objetivo
+(ex.: "R$ 20.000 para uma viagem até dez/2026"), registra aportes, e o sistema
+mostra **gráficos de progresso, métricas e estimativas** de quando você alcança
+a meta. Os valores são exibidos nas moedas mais usadas — **Real, Dólar e Euro** —
+com conversão ao vivo.
 
 Projeto de aprendizado full-stack 2026: cada tecnologia entra porque o problema
 exige, não por modismo.
@@ -18,18 +19,29 @@ exige, não por modismo.
 | Banco | **PostgreSQL 16** (via Docker) |
 | Monorepo | **pnpm workspaces** |
 
-A fazer nas próximas fatias: integração de IA, execução transacional com diff,
-funções serverless de validação, auth + DevSecOps, deploy cloud-native e PWA.
+## Roadmap de fatias
+
+Cada fatia roda de ponta a ponta antes de avançar.
+
+- **Fatia 0** ✅ — Monorepo + Next + Nest + contrato TS + health-check. (feito)
+- **Fatia 1** — Domínio: `Goal` (meta) e `Deposit` (aporte). CRUD na API +
+  lista/criação no front.
+- **Fatia 2** — Multi-moeda: integrar API de câmbio e exibir metas em BRL/USD/EUR.
+- **Fatia 3** — Gráficos e métricas: progresso da meta, histórico de aportes,
+  projeção de quando a meta é alcançada.
+- **Fatia 4** — IA: "quanto guardar por mês para bater X até a data Y" + análise
+  de ritmo de poupança.
+- **Fatia 5** — Auth + segurança (dados financeiros) + PWA + deploy cloud-native.
 
 ## Estrutura
 
 ```
-migra/
+savingsapp/
 ├─ apps/
 │  ├─ api/        # NestJS — a API é o produto (API-first)
-│  └─ web/        # Next.js — cliente do dashboard
+│  └─ web/        # Next.js — dashboard de metas e gráficos
 ├─ packages/
-│  └─ shared/     # tipos TS compartilhados (o contrato da API)
+│  └─ shared/     # tipos TS compartilhados (Goal, Deposit, Currency…)
 └─ docker-compose.yml   # Postgres 16 local
 ```
 

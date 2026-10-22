@@ -18,7 +18,7 @@ describe('AppController', () => {
     it('should return status ok and the service name', () => {
       const result = appController.getHealth();
       expect(result.status).toBe('ok');
-      expect(result.service).toBe('migra-api');
+      expect(result.service).toBe('savings-api');
       expect(typeof result.timestamp).toBe('string');
     });
   });

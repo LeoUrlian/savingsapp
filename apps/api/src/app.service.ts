@@ -6,7 +6,7 @@ export class AppService {
   getHealth(): HealthResponse {
     return {
       status: 'ok',
-      service: 'migra-api',
+      service: 'savings-api',
       timestamp: new Date().toISOString(),
     };
   }

@@ -11,6 +11,6 @@ async function bootstrap() {
   const port = Number(process.env.API_PORT ?? 3333);
   await app.listen(port);
   // eslint-disable-next-line no-console
-  console.log(`Migra API em http://localhost:${port}`);
+  console.log(`SavingsApp API em http://localhost:${port}`);
 }
 await bootstrap();

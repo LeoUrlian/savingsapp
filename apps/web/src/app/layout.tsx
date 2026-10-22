@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Migra",
-  description: "Plataforma de migração e validação de dados assistida por IA",
+  title: "SavingsApp",
+  description:
+    "Metas de poupança com gráficos, projeções e valores em Real, Dólar e Euro",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
