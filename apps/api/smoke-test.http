@@ -1,0 +1,58 @@
+### Smoke test do CRUD de metas (SavingsApp — Fatia 1)
+#
+# Como usar:
+#   1. Suba a API:  pnpm --filter @savings/api start:dev
+#   2. Rode cada requisição abaixo (VS Code: extensão "REST Client" — botão
+#      "Send Request" acima de cada bloco; ou copie para Insomnia/Postman).
+#   3. Execute na ordem: o id criado no POST alimenta os blocos seguintes.
+
+@host = http://localhost:3333
+
+### 1) Health — confirma que a API está no ar
+GET {{host}}/health
+
+### 2) Criar uma meta (guarda o id da resposta na variável abaixo)
+# @name criarMeta
+POST {{host}}/goals
+Content-Type: application/json
+
+{
+  "name": "Reserva de emergência",
+  "targetAmountCents": 1000000,
+  "baseCurrency": "BRL",
+  "targetDate": "2027-12-31"
+}
+
+### captura o id da meta recém-criada
+@goalId = {{criarMeta.response.body.id}}
+
+### 3) Listar todas as metas
+GET {{host}}/goals
+
+### 4) Detalhar a meta criada
+GET {{host}}/goals/{{goalId}}
+
+### 5) Atualizar (parcial) — muda nome e valor-alvo
+PATCH {{host}}/goals/{{goalId}}
+Content-Type: application/json
+
+{
+  "name": "Reserva de emergência (6 meses)",
+  "targetAmountCents": 1500000
+}
+
+### 6) Validação deve REJEITAR (400): valor negativo + campo extra
+POST {{host}}/goals
+Content-Type: application/json
+
+{
+  "name": "Meta inválida",
+  "targetAmountCents": -5,
+  "moedaErrada": "BRL"
+}
+
+### 7) Remover a meta (204 sem corpo)
+DELETE {{host}}/goals/{{goalId}}
+
+### 8) Confirmar remoção (deve dar 404)
+GET {{host}}/goals/{{goalId}}
