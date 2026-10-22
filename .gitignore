@@ -8,6 +8,9 @@ dist/
 out/
 build/
 
+# Prisma client gerado (artefato — recriado por `prisma generate`)
+apps/api/src/generated/
+
 # env & secrets (DevSecOps: nunca comitar credenciais)
 .env
 .env.*
@@ -23,6 +26,7 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+.kiro/
 
 # testes / cobertura
 coverage/
