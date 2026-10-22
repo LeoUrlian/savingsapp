@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { HealthResponse } from '@migra/shared';
+import type { HealthResponse } from '@savings/shared';
 
 @Injectable()
 export class AppService {

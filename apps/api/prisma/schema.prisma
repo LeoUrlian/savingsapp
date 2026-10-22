@@ -1,0 +1,50 @@
+// Schema do Prisma — SavingsApp
+// Modelo declarativo: você descreve o ESTADO desejado das tabelas e o Prisma
+// calcula o diff (a migration) por você. Oposto das migrations imperativas.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Moedas suportadas (espelha o tipo Currency do @migra/shared).
+enum Currency {
+  BRL
+  USD
+  EUR
+}
+
+/// Meta de poupança: um objetivo com valor-alvo numa moeda base.
+model Goal {
+  id               String    @id @default(uuid())
+  name             String
+  /// Valor-alvo em centavos (inteiro evita erro de ponto flutuante com dinheiro).
+  targetAmountCents Int
+  baseCurrency     Currency  @default(BRL)
+  /// Data-alvo opcional para alcançar a meta.
+  targetDate       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  deposits         Deposit[]
+
+  @@map("goals")
+}
+
+/// Um aporte (depósito) em direção a uma meta.
+model Deposit {
+  id          String   @id @default(uuid())
+  goalId      String
+  goal        Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  /// Valor do aporte em centavos.
+  amountCents Int
+  currency    Currency @default(BRL)
+  createdAt   DateTime @default(now())
+
+  @@index([goalId])
+  @@map("deposits")
+}

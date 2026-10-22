@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import type { HealthResponse } from "@migra/shared";
+import type { HealthResponse } from "@savings/shared";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 

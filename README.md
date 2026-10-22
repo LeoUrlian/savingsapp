@@ -73,5 +73,5 @@ conversa com a API — provando o contrato TypeScript ponta a ponta.
 
 ```bash
 pnpm -r build          # build de todos os pacotes
-pnpm --filter @migra/api test   # testes da API
+pnpm --filter @savings/api test   # testes da API
 ```

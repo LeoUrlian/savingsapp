@@ -1,8 +1,8 @@
 {
-  "name": "migra",
+  "name": "savingsapp",
   "version": "0.0.1",
   "private": true,
-  "description": "Migra — plataforma de migração e validação de dados assistida por IA",
+  "description": "SavingsApp — metas de poupança com gráficos, projeções e multi-moeda",
   "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=20"
@@ -11,8 +11,8 @@
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f postgres",
-    "dev:api": "pnpm --filter @migra/api start:dev",
-    "dev:web": "pnpm --filter @migra/web dev",
+    "dev:api": "pnpm --filter @savings/api start:dev",
+    "dev:web": "pnpm --filter @savings/web dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint"
   }
