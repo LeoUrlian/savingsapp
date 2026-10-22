@@ -1,0 +1,23 @@
+# Postgres local para desenvolvimento.
+# Sobe com: pnpm db:up   (equivale a: docker compose up -d)
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: migra-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: migra
+      POSTGRES_PASSWORD: migra_dev_pw
+      POSTGRES_DB: migra
+    ports:
+      - "5432:5432"
+    volumes:
+      - migra_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U migra -d migra"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  migra_pgdata:
