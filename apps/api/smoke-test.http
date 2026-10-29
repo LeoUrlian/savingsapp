@@ -51,8 +51,39 @@ Content-Type: application/json
   "moedaErrada": "BRL"
 }
 
-### 7) Remover a meta (204 sem corpo)
+### 7) Registrar um aporte na meta (R$ 300,00 = 30000 centavos)
+POST {{host}}/goals/{{goalId}}/deposits
+Content-Type: application/json
+
+{
+  "amountCents": 30000,
+  "currency": "BRL"
+}
+
+### 8) Registrar outro aporte (R$ 150,00)
+POST {{host}}/goals/{{goalId}}/deposits
+Content-Type: application/json
+
+{
+  "amountCents": 15000
+}
+
+### 9) Listar os aportes da meta (devem aparecer os 2)
+GET {{host}}/goals/{{goalId}}/deposits
+
+### 10) Detalhar a meta — savedAmountCents agora deve ser 45000 (300+150)
+GET {{host}}/goals/{{goalId}}
+
+### 11) Aporte inválido deve REJEITAR (400): valor zero
+POST {{host}}/goals/{{goalId}}/deposits
+Content-Type: application/json
+
+{
+  "amountCents": 0
+}
+
+### 12) Remover a meta (204) — o cascade apaga os aportes junto
 DELETE {{host}}/goals/{{goalId}}
 
-### 8) Confirmar remoção (deve dar 404)
+### 13) Confirmar remoção (deve dar 404)
 GET {{host}}/goals/{{goalId}}

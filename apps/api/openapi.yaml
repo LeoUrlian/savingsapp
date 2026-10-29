@@ -1,0 +1,136 @@
+openapi: 3.0.3
+info:
+  title: SavingsApp API
+  version: "0.1.0"
+  description: >
+    Coleção de testes da SavingsApp (Fatia 1). Importe este arquivo no Insomnia
+    (Create > Import > From File). Ele cria as requisições do CRUD de metas e
+    aportes já com exemplos de corpo. Ajuste o {goalId} nas rotas de detalhe/
+    aporte com o id retornado ao criar uma meta.
+servers:
+  - url: http://localhost:3333
+    description: API local (pnpm --filter @savings/api start:dev)
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200": { description: API no ar }
+  /goals:
+    get:
+      summary: Listar metas
+      responses:
+        "200": { description: Lista de metas }
+    post:
+      summary: Criar meta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGoal"
+            example:
+              name: Reserva de emergência
+              targetAmountCents: 1000000
+              baseCurrency: BRL
+              targetDate: "2027-12-31"
+      responses:
+        "201": { description: Meta criada }
+        "400": { description: Dados inválidos }
+  /goals/{goalId}:
+    get:
+      summary: Detalhar meta (savedAmountCents = soma dos aportes)
+      parameters:
+        - $ref: "#/components/parameters/GoalId"
+      responses:
+        "200": { description: Meta }
+        "404": { description: Meta não encontrada }
+    patch:
+      summary: Atualizar meta (parcial)
+      parameters:
+        - $ref: "#/components/parameters/GoalId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGoal"
+            example:
+              name: Reserva de emergência (6 meses)
+              targetAmountCents: 1500000
+      responses:
+        "200": { description: Meta atualizada }
+        "404": { description: Meta não encontrada }
+    delete:
+      summary: Remover meta (cascade apaga os aportes)
+      parameters:
+        - $ref: "#/components/parameters/GoalId"
+      responses:
+        "204": { description: Removida }
+        "404": { description: Meta não encontrada }
+  /goals/{goalId}/deposits:
+    get:
+      summary: Listar aportes da meta
+      parameters:
+        - $ref: "#/components/parameters/GoalId"
+      responses:
+        "200": { description: Lista de aportes }
+    post:
+      summary: Registrar aporte
+      parameters:
+        - $ref: "#/components/parameters/GoalId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeposit"
+            example:
+              amountCents: 30000
+              currency: BRL
+      responses:
+        "201": { description: Aporte registrado }
+        "400": { description: Dados inválidos }
+        "404": { description: Meta não encontrada }
+  /goals/{goalId}/deposits/{id}:
+    delete:
+      summary: Remover aporte
+      parameters:
+        - $ref: "#/components/parameters/GoalId"
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Removido }
+        "404": { description: Aporte não encontrado }
+components:
+  parameters:
+    GoalId:
+      name: goalId
+      in: path
+      required: true
+      description: id da meta (cole o id retornado ao criar uma meta)
+      schema: { type: string }
+  schemas:
+    CreateGoal:
+      type: object
+      required: [name, targetAmountCents]
+      properties:
+        name: { type: string, maxLength: 120 }
+        targetAmountCents: { type: integer, minimum: 1 }
+        baseCurrency: { type: string, enum: [BRL, USD, EUR] }
+        targetDate: { type: string, format: date-time }
+    UpdateGoal:
+      type: object
+      properties:
+        name: { type: string, maxLength: 120 }
+        targetAmountCents: { type: integer, minimum: 1 }
+        baseCurrency: { type: string, enum: [BRL, USD, EUR] }
+        targetDate: { type: string, format: date-time }
+    CreateDeposit:
+      type: object
+      required: [amountCents]
+      properties:
+        amountCents: { type: integer, minimum: 1 }
+        currency: { type: string, enum: [BRL, USD, EUR] }
