@@ -12,6 +12,15 @@
 /** Moedas suportadas na exibição de valores. */
 export type Currency = "BRL" | "USD" | "EUR";
 
+/** Resposta do endpoint GET /rates?base=BRL */
+export interface ExchangeRates {
+  base: Currency;
+  /** Data da cotação (YYYY-MM-DD). */
+  date: string;
+  /** Quanto vale 1 unidade da moeda base em cada moeda (base = 1). */
+  rates: Record<Currency, number>;
+}
+
 /** Resposta do endpoint GET /health */
 export interface HealthResponse {
   status: "ok";

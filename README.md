@@ -24,9 +24,9 @@ exige, não por modismo.
 Cada fatia roda de ponta a ponta antes de avançar.
 
 - **Fatia 0** ✅ — Monorepo + Next + Nest + contrato TS + health-check. (feito)
-- **Fatia 1** — Domínio: `Goal` (meta) e `Deposit` (aporte). CRUD na API +
+- **Fatia 1** (feito) — Domínio: `Goal` (meta) e `Deposit` (aporte). CRUD na API +
   lista/criação no front.
-- **Fatia 2** — Multi-moeda: integrar API de câmbio e exibir metas em BRL/USD/EUR.
+- **Fatia 2** (feito) — Multi-moeda: integrar API de câmbio e exibir metas em BRL/USD/EUR.
 - **Fatia 3** — Gráficos e métricas: progresso da meta, histórico de aportes,
   projeção de quando a meta é alcançada.
 - **Fatia 4** — IA: "quanto guardar por mês para bater X até a data Y" + análise
@@ -75,3 +75,11 @@ conversa com a API — provando o contrato TypeScript ponta a ponta.
 pnpm -r build          # build de todos os pacotes
 pnpm --filter @savings/api test   # testes da API
 ```
+
+## Câmbio (Fatia 2)
+
+- `GET /rates?base=BRL` devolve a cotação de 1 unidade da moeda base em BRL, USD e EUR.
+- Fonte: [Frankfurter](https://frankfurter.dev) (dados do BCE), sem chave de API.
+- Cache em memória de 1 hora. Se a fonte cair, a API usa a última cotação guardada.
+- O saldo de uma meta (`savedAmountCents`) converte cada aporte para a moeda da meta pela cotação do dia. Por isso o saldo pode mudar com o câmbio.
+- No front, `?moeda=USD` (ou BRL/EUR) escolhe a moeda de exibição.

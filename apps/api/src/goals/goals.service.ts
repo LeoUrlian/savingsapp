@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Goal } from '@savings/shared';
+import type { Currency, Goal } from '@savings/shared';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { CurrencyService } from '../currency/currency.service.js';
 import { CreateGoalDto } from './dto/create-goal.dto.js';
 import { UpdateGoalDto } from './dto/update-goal.dto.js';
 
@@ -12,22 +13,22 @@ type GoalWithDeposits = {
   baseCurrency: 'BRL' | 'USD' | 'EUR';
   targetDate: Date | null;
   createdAt: Date;
-  deposits: { amountCents: number }[];
+  deposits: { amountCents: number; currency: Currency }[];
 };
 
 @Injectable()
 export class GoalsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly currencyService: CurrencyService,
+  ) {}
 
   /**
    * Converte o registro do banco para o tipo Goal do contrato compartilhado:
    * datas viram ISO string e savedAmountCents é a soma dos aportes.
    */
-  private toGoal(row: GoalWithDeposits): Goal {
-    const savedAmountCents = row.deposits.reduce(
-      (sum, d) => sum + d.amountCents,
-      0,
-    );
+  private async toGoal(row: GoalWithDeposits): Promise<Goal> {
+    const savedAmountCents = await this.sumInBaseCurrency(row);
     return {
       id: row.id,
       name: row.name,
@@ -39,6 +40,26 @@ export class GoalsService {
     };
   }
 
+  /**
+   * Soma os aportes na moeda da meta. Aporte em outra moeda é convertido pela
+   * cotação atual (rates[X] = quanto 1 unidade da base vale em X, então
+   * valor_na_base = valor_em_X / rates[X]). Só busca cotação se houver aporte
+   * em moeda diferente.
+   */
+  private async sumInBaseCurrency(row: GoalWithDeposits): Promise<number> {
+    const needsRates = row.deposits.some(
+      (d) => d.currency !== row.baseCurrency,
+    );
+    const rates = needsRates
+      ? (await this.currencyService.getRates(row.baseCurrency)).rates
+      : undefined;
+    const total = row.deposits.reduce((sum, d) => {
+      if (d.currency === row.baseCurrency || !rates) return sum + d.amountCents;
+      return sum + d.amountCents / rates[d.currency];
+    }, 0);
+    return Math.round(total);
+  }
+
   async create(dto: CreateGoalDto): Promise<Goal> {
     const row = await this.prisma.goal.create({
       data: {
@@ -47,28 +68,28 @@ export class GoalsService {
         baseCurrency: dto.baseCurrency ?? 'BRL',
         targetDate: dto.targetDate ? new Date(dto.targetDate) : null,
       },
-      include: { deposits: { select: { amountCents: true } } },
+      include: { deposits: { select: { amountCents: true, currency: true } } },
     });
-    return this.toGoal(row);
+    return await this.toGoal(row);
   }
 
   async findAll(): Promise<Goal[]> {
     const rows = await this.prisma.goal.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { deposits: { select: { amountCents: true } } },
+      include: { deposits: { select: { amountCents: true, currency: true } } },
     });
-    return rows.map((row) => this.toGoal(row));
+    return Promise.all(rows.map((row) => this.toGoal(row)));
   }
 
   async findOne(id: string): Promise<Goal> {
     const row = await this.prisma.goal.findUnique({
       where: { id },
-      include: { deposits: { select: { amountCents: true } } },
+      include: { deposits: { select: { amountCents: true, currency: true } } },
     });
     if (!row) {
       throw new NotFoundException(`Meta ${id} não encontrada`);
     }
-    return this.toGoal(row);
+    return await this.toGoal(row);
   }
 
   async update(id: string, dto: UpdateGoalDto): Promise<Goal> {
@@ -86,9 +107,9 @@ export class GoalsService {
               ? new Date(dto.targetDate)
               : null,
       },
-      include: { deposits: { select: { amountCents: true } } },
+      include: { deposits: { select: { amountCents: true, currency: true } } },
     });
-    return this.toGoal(row);
+    return await this.toGoal(row);
   }
 
   async remove(id: string): Promise<void> {

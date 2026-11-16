@@ -16,6 +16,29 @@ paths:
       summary: Health check
       responses:
         "200": { description: API no ar }
+  /rates:
+    get:
+      summary: Cotacao de cambio (1 unidade da moeda base em BRL, USD e EUR)
+      description: >
+        Fonte - Frankfurter (BCE), sem chave. Cache de 1h em memoria; se a
+        fonte cair, devolve a ultima cotacao guardada.
+      parameters:
+        - name: base
+          in: query
+          required: false
+          description: Moeda base (padrao BRL)
+          schema: { type: string, enum: [BRL, USD, EUR], default: BRL }
+      responses:
+        "200":
+          description: Cotacao
+          content:
+            application/json:
+              example:
+                base: BRL
+                date: "2026-11-16"
+                rates: { BRL: 1, USD: 0.17528, EUR: 0.15914 }
+        "400": { description: Moeda base invalida }
+        "502": { description: Servico de cambio indisponivel e sem cotacao guardada }
   /goals:
     get:
       summary: Listar metas
@@ -39,7 +62,7 @@ paths:
         "400": { description: Dados inválidos }
   /goals/{goalId}:
     get:
-      summary: Detalhar meta (savedAmountCents = soma dos aportes)
+      summary: Detalhar meta (savedAmountCents = soma dos aportes, convertidos para a moeda da meta pela cotacao do dia)
       parameters:
         - $ref: "#/components/parameters/GoalId"
       responses:

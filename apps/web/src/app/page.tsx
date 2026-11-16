@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { HealthResponse } from "@savings/shared";
 import { GoalForm } from "./goal-form";
-import { GoalsList } from "./goals-list";
+import { GoalsSection } from "./goals-section";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
@@ -61,7 +61,11 @@ function ApiStatusFallback() {
   );
 }
 
-export default function Home() {
+export default function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ moeda?: string }>;
+}) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-zinc-50 p-8 font-sans text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       <div className="flex flex-col items-center gap-2 text-center">
@@ -82,7 +86,7 @@ export default function Home() {
         <Suspense
           fallback={<p className="text-sm text-zinc-500">Carregando metas…</p>}
         >
-          <GoalsList />
+          <GoalsSection searchParams={searchParams} />
         </Suspense>
       </section>
 

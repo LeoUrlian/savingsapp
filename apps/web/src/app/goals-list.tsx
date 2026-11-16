@@ -1,9 +1,10 @@
-import type { Goal } from "@savings/shared";
+import type { Currency, Goal } from "@savings/shared";
 import { Suspense } from "react";
 import { formatMoney } from "../lib/money";
 import { DepositForm } from "./deposit-form";
 import { DepositsList } from "./deposits-list";
 import { DeleteButton } from "./delete-button";
+import { ConvertedAmount } from "./converted-amount";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
@@ -18,7 +19,7 @@ async function getGoals(): Promise<Goal[] | null> {
 }
 
 /** Lista de metas. Acessa dados de runtime: usar dentro de <Suspense>. */
-export async function GoalsList() {
+export async function GoalsList({ display }: { display?: Currency }) {
   const goals = await getGoals();
 
   if (goals === null) {
@@ -73,6 +74,18 @@ export async function GoalsList() {
                 ? ` · até ${new Date(goal.targetDate).toLocaleDateString("pt-BR")}`
                 : ""}
             </p>
+            <Suspense fallback={null}>
+              <ConvertedAmount
+                savedCents={goal.savedAmountCents}
+                targetCents={goal.targetAmountCents}
+                base={goal.baseCurrency}
+                targets={
+                  display
+                    ? [display].filter((c) => c !== goal.baseCurrency)
+                    : undefined
+                }
+              />
+            </Suspense>
             <DepositForm goalId={goal.id} currency={goal.baseCurrency} />
             <Suspense
               fallback={<p className="mt-3 text-sm text-zinc-500">Carregando…</p>}
