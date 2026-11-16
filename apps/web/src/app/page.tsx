@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import type { HealthResponse } from "@savings/shared";
+import { GoalForm } from "./goal-form";
+import { GoalsList } from "./goals-list";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
@@ -73,6 +75,16 @@ export default function Home() {
       <Suspense fallback={<ApiStatusFallback />}>
         <ApiStatus />
       </Suspense>
+
+      <section className="flex w-full max-w-2xl flex-col gap-4">
+        <h2 className="text-xl font-semibold">Minhas metas</h2>
+        <GoalForm />
+        <Suspense
+          fallback={<p className="text-sm text-zinc-500">Carregando metas…</p>}
+        >
+          <GoalsList />
+        </Suspense>
+      </section>
 
       <p className="text-xs text-zinc-400 dark:text-zinc-600">
         Fatia 0 · monorepo Next + Nest + TypeScript ponta a ponta
