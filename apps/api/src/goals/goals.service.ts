@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Currency, Goal } from '@savings/shared';
+import type { Currency, Goal, GoalStats } from '@savings/shared';
+import { computeGoalStats } from './goal-stats.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CurrencyService } from '../currency/currency.service.js';
 import { CreateGoalDto } from './dto/create-goal.dto.js';
@@ -58,6 +59,43 @@ export class GoalsService {
       return sum + d.amountCents / rates[d.currency];
     }, 0);
     return Math.round(total);
+  }
+
+  /** Histórico, ritmo e projeção de uma meta (aportes convertidos para a moeda da meta). */
+  async getStats(id: string): Promise<GoalStats> {
+    const row = await this.prisma.goal.findUnique({
+      where: { id },
+      include: {
+        deposits: {
+          select: { amountCents: true, currency: true, createdAt: true },
+        },
+      },
+    });
+    if (!row) {
+      throw new NotFoundException(`Meta ${id} não encontrada`);
+    }
+
+    const needsRates = row.deposits.some(
+      (d) => d.currency !== row.baseCurrency,
+    );
+    const rates = needsRates
+      ? (await this.currencyService.getRates(row.baseCurrency)).rates
+      : undefined;
+
+    return computeGoalStats({
+      goalId: row.id,
+      currency: row.baseCurrency,
+      targetAmountCents: row.targetAmountCents,
+      targetDate: row.targetDate,
+      now: new Date(),
+      deposits: row.deposits.map((d) => ({
+        createdAt: d.createdAt,
+        amountCents:
+          d.currency === row.baseCurrency || !rates
+            ? d.amountCents
+            : d.amountCents / rates[d.currency],
+      })),
+    });
   }
 
   async create(dto: CreateGoalDto): Promise<Goal> {

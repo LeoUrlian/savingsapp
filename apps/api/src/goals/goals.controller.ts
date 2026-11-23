@@ -8,7 +8,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import type { Goal } from '@savings/shared';
+import type { Goal, GoalStats } from '@savings/shared';
 import { GoalsService } from './goals.service.js';
 import { CreateGoalDto } from './dto/create-goal.dto.js';
 import { UpdateGoalDto } from './dto/update-goal.dto.js';
@@ -33,6 +33,11 @@ export class GoalsController {
   @Get()
   findAll(): Promise<Goal[]> {
     return this.goalsService.findAll();
+  }
+
+  @Get(':id/stats')
+  stats(@Param('id') id: string): Promise<GoalStats> {
+    return this.goalsService.getStats(id);
   }
 
   @Get(':id')

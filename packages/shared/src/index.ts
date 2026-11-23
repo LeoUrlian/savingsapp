@@ -54,3 +54,32 @@ export interface Deposit {
   currency: Currency;
   createdAt: string; // ISO 8601
 }
+
+/** Um ponto do histórico: saldo acumulado da meta após um aporte. */
+export interface GoalHistoryPoint {
+  date: string; // ISO 8601
+  /** Saldo acumulado em centavos, na moeda da meta. */
+  cumulativeCents: number;
+}
+
+/** Resposta do endpoint GET /goals/:id/stats */
+export interface GoalStats {
+  goalId: string;
+  currency: Currency;
+  targetAmountCents: number;
+  savedAmountCents: number;
+  /** 0 a 100. Passa de 100 só se a meta foi superada: aqui fica limitado a 100. */
+  progressPct: number;
+  depositCount: number;
+  /** Ritmo médio de poupança por mês, em centavos. 0 se não há aportes. */
+  monthlyPaceCents: number;
+  history: GoalHistoryPoint[];
+  /** Aportes somados por mês (AAAA-MM, fuso de Brasília), do primeiro mês até o atual, com meses vazios em 0. */
+  monthly: { month: string; amountCents: number }[];
+  /** Data estimada para atingir a meta, no ritmo atual. Ausente se não dá para estimar. */
+  projectedDate?: string;
+  /** true se a meta foi atingida. */
+  reached: boolean;
+  /** Com data-alvo: se a data projetada é igual ou anterior a ela. */
+  onTrack?: boolean;
+}

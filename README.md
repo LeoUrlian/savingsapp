@@ -27,7 +27,7 @@ Cada fatia roda de ponta a ponta antes de avançar.
 - **Fatia 1** (feito) — Domínio: `Goal` (meta) e `Deposit` (aporte). CRUD na API +
   lista/criação no front.
 - **Fatia 2** (feito) — Multi-moeda: integrar API de câmbio e exibir metas em BRL/USD/EUR.
-- **Fatia 3** — Gráficos e métricas: progresso da meta, histórico de aportes,
+- **Fatia 3** (feito) — Gráficos e métricas: progresso da meta, histórico de aportes,
   projeção de quando a meta é alcançada.
 - **Fatia 4** — IA: "quanto guardar por mês para bater X até a data Y" + análise
   de ritmo de poupança.
@@ -83,3 +83,11 @@ pnpm --filter @savings/api test   # testes da API
 - Cache em memória de 1 hora. Se a fonte cair, a API usa a última cotação guardada.
 - O saldo de uma meta (`savedAmountCents`) converte cada aporte para a moeda da meta pela cotação do dia. Por isso o saldo pode mudar com o câmbio.
 - No front, `?moeda=USD` (ou BRL/EUR) escolhe a moeda de exibição.
+## Gráficos e métricas (Fatia 3)
+
+- `GET /goals/:id/stats` devolve histórico de saldo, ritmo por mês, aportes por mês, data prevista e situação da meta.
+- Aportes em outra moeda são convertidos para a moeda da meta pela cotação do dia.
+- Ritmo: total guardado dividido pelos dias desde o primeiro aporte, com janela mínima de 30 dias. A previsão assume esse ritmo constante.
+- Situação: "No prazo" ou "Atrasada" só aparece se a meta tem data-alvo.
+- Os meses são contados no fuso de Brasília (UTC-3).
+- No front, cada meta mostra 4 números, uma linha com o saldo e a projeção, e barras de aportes por mês (últimos 12). Os gráficos são SVG puro, sem biblioteca.

@@ -5,6 +5,7 @@ import { DepositForm } from "./deposit-form";
 import { DepositsList } from "./deposits-list";
 import { DeleteButton } from "./delete-button";
 import { ConvertedAmount } from "./converted-amount";
+import { GoalStatsPanel } from "./goal-stats";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
@@ -85,6 +86,9 @@ export async function GoalsList({ display }: { display?: Currency }) {
                     : undefined
                 }
               />
+            </Suspense>
+            <Suspense fallback={null}>
+              <GoalStatsPanel goalId={goal.id} />
             </Suspense>
             <DepositForm goalId={goal.id} currency={goal.baseCurrency} />
             <Suspense

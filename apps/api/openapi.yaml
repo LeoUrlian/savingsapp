@@ -91,6 +91,43 @@ paths:
       responses:
         "204": { description: Removida }
         "404": { description: Meta não encontrada }
+  /goals/{goalId}/stats:
+    get:
+      summary: Metricas da meta (historico, ritmo, projecao, aportes por mes)
+      description: >
+        Aportes em outra moeda sao convertidos para a moeda da meta pela
+        cotacao do dia. O ritmo e o total guardado dividido pelos dias desde o
+        primeiro aporte, com janela minima de 30 dias. A projecao assume esse
+        ritmo constante. projectedDate some se a meta ja foi atingida ou nao ha
+        aportes. onTrack so existe se a meta tem data-alvo. Os meses (monthly)
+        sao contados no fuso de Brasilia (UTC-3), do primeiro aporte ate o mes atual, com meses
+        vazios em 0.
+      parameters:
+        - $ref: "#/components/parameters/GoalId"
+      responses:
+        "200":
+          description: Metricas
+          content:
+            application/json:
+              example:
+                goalId: "ckx123"
+                currency: BRL
+                targetAmountCents: 100000
+                savedAmountCents: 30000
+                progressPct: 30
+                depositCount: 2
+                monthlyPaceCents: 15219
+                history:
+                  - { date: "2026-09-24T12:00:00.000Z", cumulativeCents: 20000 }
+                  - { date: "2026-11-10T12:00:00.000Z", cumulativeCents: 30000 }
+                monthly:
+                  - { month: "2026-09", amountCents: 20000 }
+                  - { month: "2026-10", amountCents: 0 }
+                  - { month: "2026-11", amountCents: 10000 }
+                projectedDate: "2027-04-12T12:00:00.000Z"
+                reached: false
+                onTrack: true
+        "404": { description: Meta nao encontrada }
   /goals/{goalId}/deposits:
     get:
       summary: Listar aportes da meta
