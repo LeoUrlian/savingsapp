@@ -11,9 +11,13 @@ COPY packages/shared/package.json packages/shared/
 RUN pnpm install --frozen-lockfile --filter "@savings/api..."
 
 # 2) Código, cliente do Prisma e build.
+# O `prisma generate` não conecta no banco, mas o prisma.config.ts exige a
+# variável DATABASE_URL. Aqui vai um valor falso, só para este passo (não fica
+# na imagem). O valor real chega quando o contêiner roda.
 COPY packages/shared packages/shared
 COPY apps/api apps/api
-RUN pnpm --filter @savings/api exec prisma generate \
+RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" \
+    pnpm --filter @savings/api exec prisma generate \
  && pnpm --filter @savings/api build
 
 # 3) Imagem final: sem ferramentas de build e sem rodar como root.
