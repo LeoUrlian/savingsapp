@@ -1,0 +1,19 @@
+# Porta de entrada única. Com um domínio de verdade em DOMAIN, o Caddy pega e
+# renova o certificado HTTPS sozinho. Com "localhost", usa um certificado local.
+#
+#   /api/*  -> API (o prefixo /api é removido antes de chegar nela)
+#   resto   -> front
+#
+# Como front e API ficam no MESMO endereço, o cookie de sessão é do mesmo
+# site e não precisa de CORS.
+{$DOMAIN:localhost} {
+	encode gzip
+
+	handle_path /api/* {
+		reverse_proxy api:3333
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}

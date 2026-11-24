@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Lint ao salvar",
+  "description": "Roda o lint do projeto quando código TS/TSX é salvo",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["apps/**/*.ts", "apps/**/*.tsx", "packages/**/*.ts"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Rode `pnpm lint` e corrija os erros nos arquivos alterados."
+  }
+}

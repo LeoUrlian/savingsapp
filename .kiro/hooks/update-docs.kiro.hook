@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Atualizar documentação da API",
+  "description": "Mantém openapi.yaml e README em sincronia com controllers e DTOs",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["apps/api/src/**/*.controller.ts", "apps/api/src/**/*.dto.ts"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Controllers ou DTOs mudaram. Atualize `apps/api/openapi.yaml` e o README se algo ficou desatualizado."
+  }
+}

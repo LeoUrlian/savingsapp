@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+.git
+**/dist
+**/.next
+**/.turbo
+coverage
+*.log
+.env
+.env.*
+!.env.example
+!.env.prod.example
+.kiro
+apps/api/src/generated

@@ -1,12 +1,10 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import type { HealthResponse } from "@savings/shared";
-import { getMe } from "../lib/api";
+import { API_URL, getMe } from "../lib/api";
 import { GoalForm } from "./goal-form";
 import { GoalsSection } from "./goals-section";
 import { LogoutButton } from "./logout-button";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
 async function getHealth(): Promise<HealthResponse | null> {
   try {

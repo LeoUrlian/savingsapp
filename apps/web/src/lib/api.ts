@@ -1,7 +1,9 @@
 import { cookies } from "next/headers";
 
 export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
+  process.env.API_INTERNAL_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:3333";
 
 /**
  * fetch para a API, feito no SERVIDOR do Next. O navegador não participa, então

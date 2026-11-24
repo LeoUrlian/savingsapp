@@ -136,3 +136,72 @@ O app pode ser instalado (no Chrome: ícone de instalar na barra de endereço; n
 - O service worker **não guarda** páginas nem respostas da API. São dados financeiros de uma conta logada, e um cache poderia mostrar o saldo de uma pessoa a outra no mesmo aparelho. Por isso o app **não funciona offline**; só avisa.
 - O service worker só é registrado em produção (`pnpm --filter @savings/web build` e `start`). Em `dev` ele fica desligado.
 - O PWA instalável exige HTTPS. `localhost` é aceito como exceção.
+
+## Deploy (Fatia 5)
+
+Tudo roda em contêineres Docker, em uma única máquina (um VPS ou o seu PC). Não depende de nenhum provedor de nuvem.
+
+```
+Internet --> Caddy (80/443, HTTPS automático)
+               |-- /api/*  --> API (NestJS)  --> Postgres
+               `-- resto   --> Front (Next.js)
+```
+
+Front e API ficam no **mesmo endereço**. Por isso o cookie de sessão é do mesmo site e não precisa de CORS. O Caddy remove o prefixo `/api` antes de chamar a API.
+
+**Passos:**
+
+1. Copie `.env.prod.example` para `.env.prod` e preencha `DOMAIN` e `POSTGRES_PASSWORD`. Para testar no seu PC, deixe `DOMAIN=localhost`.
+2. Suba tudo:
+   ```
+   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+   ```
+3. Abra `https://localhost` (no PC, o navegador avisa do certificado local: aceite) ou `https://seu-dominio`.
+
+**O que acontece sozinho:** a API aplica as migrações do banco ao ligar. Com um domínio real apontado para a máquina, o Caddy pega e renova o certificado.
+
+**Arquivos:** `apps/api/Dockerfile`, `apps/web/Dockerfile`, `docker-compose.prod.yml`, `deploy/Caddyfile`, `.env.prod.example`.
+
+**Cuidados:**
+- Só o Caddy abre portas (80 e 443). O banco e a API ficam na rede interna do Docker.
+- O `.env.prod` guarda segredos e não vai para o git.
+- Faça backup do volume do banco (`savings_pgdata`). Sem backup, apagar o volume apaga os dados.
+- O endereço da API que o navegador usa é gravado no build do front (`NEXT_PUBLIC_API_URL`). Se mudar o domínio, refaça o build.
+- O limite de tentativas de login fica na memória de uma única API. Com várias réplicas, mova-o para um serviço compartilhado.
+- O compose de produção tem nome de projeto próprio (`savingsapp-prod`), para não misturar com o banco de desenvolvimento.
+
+## Deploy grátis: Vercel + Render + Neon
+
+```
+Navegador --> Vercel (front)  --/api/*-->  Render (API)  -->  Neon (Postgres)
+```
+
+O front chama `/api/...` no próprio endereço da Vercel, e a Vercel repassa para o Render. Assim o cookie de sessão fica no mesmo site.
+
+**Limites dos planos grátis** (confira nos sites, eles mudam):
+- **Render:** o serviço grátis "dorme" após 15 minutos sem uso. O primeiro acesso depois disso leva cerca de 50 segundos. Dá 750 horas por mês, o que cobre um serviço ligado o mês inteiro.
+- **Neon:** 1 GB por projeto, sem prazo e sem cartão. O banco "dorme" após 5 minutos e acorda em milissegundos.
+- **Vercel Hobby:** só para uso pessoal e **não comercial**.
+
+**Passos**
+
+1. **Banco (Neon).** Crie um projeto em [neon.com](https://neon.com). Copie a connection string **direta** (sem "pooler") e guarde: é o `DATABASE_URL`.
+2. **API (Render).** Suba o projeto para um repositório no GitHub. No [render.com](https://render.com), crie um **Web Service** a partir dele:
+   - Runtime: **Docker**. Dockerfile: `apps/api/Dockerfile`. Contexto: a raiz (`.`).
+   - Plano: **Free**. Health Check Path: `/health`.
+   - Variáveis: `DATABASE_URL`, `NODE_ENV=production`, `TRUST_PROXY=true` e, se usar a IA, `OPENAI_API_KEY`, `AI_MODEL`, `AI_BASE_URL`.
+   - A API aplica as migrações do banco sozinha ao ligar. Anote o endereço, por exemplo `https://savings-api.onrender.com`.
+3. **Front (Vercel).** No [vercel.com](https://vercel.com), importe o mesmo repositório:
+   - Root Directory: `apps/web`, com a opção de incluir arquivos de fora dessa pasta ligada.
+   - Variáveis (as duas primeiras valem para o build):
+     - `NEXT_PUBLIC_API_URL=/api`
+     - `API_PROXY_URL=https://savings-api.onrender.com`
+     - `API_INTERNAL_URL=https://savings-api.onrender.com`
+4. Abra o endereço da Vercel e crie a sua conta.
+
+**Para a API não dormir:** crie um aviso grátis em [cron-job.org](https://cron-job.org) que abra `https://savings-api.onrender.com/health` a cada 10 minutos.
+
+**Cuidados**
+- Os dados do seu PC não vão sozinhos. Faça um `pg_dump` aqui e restaure no Neon.
+- Atrás de dois proxies (Vercel e Render), o limite de login enxerga o IP do proxy. Na prática ele limita por e-mail, não por pessoa.
+- O `.env` e as chaves ficam só nos painéis da Vercel e do Render. Nunca no git.

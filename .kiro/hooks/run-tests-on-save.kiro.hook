@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Testes ao salvar código da API",
+  "description": "Roda os testes da API quando um arquivo .ts da API é salvo",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["apps/api/src/**/*.ts"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Um arquivo da API mudou. Rode `pnpm --filter @savings/api test` e corrija falhas causadas pela mudança."
+  }
+}
