@@ -26,8 +26,12 @@ export class DepositsService {
     };
   }
 
-  async create(goalId: string, dto: CreateDepositDto): Promise<Deposit> {
-    await this.ensureGoalExists(goalId);
+  async create(
+    userId: string,
+    goalId: string,
+    dto: CreateDepositDto,
+  ): Promise<Deposit> {
+    await this.ensureGoalExists(userId, goalId);
     const row = await this.prisma.deposit.create({
       data: {
         goalId,
@@ -38,8 +42,8 @@ export class DepositsService {
     return this.toDeposit(row);
   }
 
-  async findAllForGoal(goalId: string): Promise<Deposit[]> {
-    await this.ensureGoalExists(goalId);
+  async findAllForGoal(userId: string, goalId: string): Promise<Deposit[]> {
+    await this.ensureGoalExists(userId, goalId);
     const rows = await this.prisma.deposit.findMany({
       where: { goalId },
       orderBy: { createdAt: 'desc' },
@@ -47,8 +51,8 @@ export class DepositsService {
     return rows.map((row) => this.toDeposit(row));
   }
 
-  async remove(goalId: string, id: string): Promise<void> {
-    await this.ensureGoalExists(goalId);
+  async remove(userId: string, goalId: string, id: string): Promise<void> {
+    await this.ensureGoalExists(userId, goalId);
     // Confirma que o aporte existe E pertence a esta meta (evita apagar
     // aporte de outra meta passando um id alheio na rota).
     const found = await this.prisma.deposit.findFirst({
@@ -63,8 +67,13 @@ export class DepositsService {
     await this.prisma.deposit.delete({ where: { id } });
   }
 
-  private async ensureGoalExists(goalId: string): Promise<void> {
-    const count = await this.prisma.goal.count({ where: { id: goalId } });
+  private async ensureGoalExists(
+    userId: string,
+    goalId: string,
+  ): Promise<void> {
+    const count = await this.prisma.goal.count({
+      where: { id: goalId, userId },
+    });
     if (count === 0) {
       throw new NotFoundException(`Meta ${goalId} não encontrada`);
     }

@@ -22,9 +22,29 @@ async function bootstrap() {
     }),
   );
 
-  // Permite que o front (Next, em http://localhost:3000) chame esta API.
-  // Em produção restringimos a origem; em dev liberamos.
-  app.enableCors({ origin: true });
+  // Cabeçalhos básicos de segurança. A API só devolve JSON, então nada aqui
+  // atrapalha o front.
+  app.use(
+    (
+      _req: unknown,
+      res: { setHeader(name: string, value: string): void },
+      next: () => void,
+    ) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+      res.setHeader('Referrer-Policy', 'no-referrer');
+      res.setHeader('Cache-Control', 'no-store');
+      next();
+    },
+  );
+
+  // CORS com cookie de sessão: o navegador só envia o cookie para uma origem
+  // EXATA (nunca "*" nem "refletir qualquer origem"). Em produção, defina
+  // WEB_ORIGIN com o endereço do front.
+  app.enableCors({
+    origin: process.env.WEB_ORIGIN ?? 'http://localhost:3000',
+    credentials: true,
+  });
 
   const port = Number(process.env.API_PORT ?? 3333);
   await app.listen(port);

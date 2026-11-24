@@ -9,6 +9,8 @@ import {
 } from '@nestjs/common';
 import type { Deposit } from '@savings/shared';
 import { DepositsService } from './deposits.service.js';
+import { CurrentUser } from '../auth/auth.guard.js';
+import type { AuthUser } from '../auth/auth.service.js';
 import { CreateDepositDto } from './dto/create-deposit.dto.js';
 
 /**
@@ -23,23 +25,28 @@ export class DepositsController {
 
   @Post()
   create(
+    @CurrentUser() user: AuthUser,
     @Param('goalId') goalId: string,
     @Body() dto: CreateDepositDto,
   ): Promise<Deposit> {
-    return this.depositsService.create(goalId, dto);
+    return this.depositsService.create(user.id, goalId, dto);
   }
 
   @Get()
-  findAll(@Param('goalId') goalId: string): Promise<Deposit[]> {
-    return this.depositsService.findAllForGoal(goalId);
+  findAll(
+    @CurrentUser() user: AuthUser,
+    @Param('goalId') goalId: string,
+  ): Promise<Deposit[]> {
+    return this.depositsService.findAllForGoal(user.id, goalId);
   }
 
   @Delete(':id')
   @HttpCode(204)
   remove(
+    @CurrentUser() user: AuthUser,
     @Param('goalId') goalId: string,
     @Param('id') id: string,
   ): Promise<void> {
-    return this.depositsService.remove(goalId, id);
+    return this.depositsService.remove(user.id, goalId, id);
   }
 }

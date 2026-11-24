@@ -1,14 +1,11 @@
 import type { GoalStats } from "@savings/shared";
+import { apiFetch } from "../lib/api";
 import { formatMoney } from "../lib/money";
 import { AdviceButton } from "./advice-button";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
-
 async function getStats(goalId: string): Promise<GoalStats | null> {
   try {
-    const res = await fetch(`${API_URL}/goals/${goalId}/stats`, {
-      cache: "no-store",
-    });
+    const res = await apiFetch(`/goals/${goalId}/stats`);
     if (!res.ok) return null;
     return (await res.json()) as GoalStats;
   } catch {

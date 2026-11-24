@@ -32,6 +32,11 @@ model Goal {
 
   deposits         Deposit[]
 
+  /// Dono da meta. Nulo so em metas criadas antes da autenticacao existir.
+  userId           String?
+  user             User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
   @@map("goals")
 }
 
@@ -47,4 +52,32 @@ model Deposit {
 
   @@index([goalId])
   @@map("deposits")
+}
+
+/// Usuario do app. A senha nunca e guardada: so o hash (scrypt + sal).
+model User {
+  id           String    @id @default(uuid())
+  /// Sempre em minusculas.
+  email        String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+
+  goals        Goal[]
+  sessions     Session[]
+
+  @@map("users")
+}
+
+/// Sessao de login. O cookie leva um token aleatorio; aqui fica so o SHA-256
+/// dele, entao um vazamento do banco nao entrega sessoes validas.
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("sessions")
 }

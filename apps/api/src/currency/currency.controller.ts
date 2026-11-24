@@ -12,7 +12,9 @@ export class CurrencyController {
   @Get()
   getRates(@Query('base') base: string = 'BRL'): Promise<ExchangeRates> {
     if (!VALID.includes(base as Currency)) {
-      throw new BadRequestException(`base deve ser uma de: ${VALID.join(', ')}`);
+      throw new BadRequestException(
+        `base deve ser uma de: ${VALID.join(', ')}`,
+      );
     }
     return this.currencyService.getRates(base as Currency);
   }

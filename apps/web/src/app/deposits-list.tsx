@@ -1,14 +1,11 @@
 import type { Deposit } from "@savings/shared";
+import { apiFetch } from "../lib/api";
 import { formatMoney } from "../lib/money";
 import { DeleteButton } from "./delete-button";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
-
 async function getDeposits(goalId: string): Promise<Deposit[] | null> {
   try {
-    const res = await fetch(`${API_URL}/goals/${goalId}/deposits`, {
-      cache: "no-store",
-    });
+    const res = await apiFetch(`/goals/${goalId}/deposits`);
     if (!res.ok) return null;
     return (await res.json()) as Deposit[];
   } catch {
@@ -21,7 +18,9 @@ export async function DepositsList({ goalId }: { goalId: string }) {
   const deposits = await getDeposits(goalId);
 
   if (deposits === null) {
-    return <p className="mt-3 text-sm text-red-500">Erro ao carregar aportes.</p>;
+    return (
+      <p className="mt-3 text-sm text-red-500">Erro ao carregar aportes.</p>
+    );
   }
   if (deposits.length === 0) {
     return (

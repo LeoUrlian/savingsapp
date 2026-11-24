@@ -62,9 +62,9 @@ export class GoalsService {
   }
 
   /** Histórico, ritmo e projeção de uma meta (aportes convertidos para a moeda da meta). */
-  async getStats(id: string): Promise<GoalStats> {
-    const row = await this.prisma.goal.findUnique({
-      where: { id },
+  async getStats(userId: string, id: string): Promise<GoalStats> {
+    const row = await this.prisma.goal.findFirst({
+      where: { id, userId },
       include: {
         deposits: {
           select: { amountCents: true, currency: true, createdAt: true },
@@ -98,9 +98,10 @@ export class GoalsService {
     });
   }
 
-  async create(dto: CreateGoalDto): Promise<Goal> {
+  async create(userId: string, dto: CreateGoalDto): Promise<Goal> {
     const row = await this.prisma.goal.create({
       data: {
+        userId,
         name: dto.name,
         targetAmountCents: dto.targetAmountCents,
         baseCurrency: dto.baseCurrency ?? 'BRL',
@@ -111,17 +112,18 @@ export class GoalsService {
     return await this.toGoal(row);
   }
 
-  async findAll(): Promise<Goal[]> {
+  async findAll(userId: string): Promise<Goal[]> {
     const rows = await this.prisma.goal.findMany({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
       include: { deposits: { select: { amountCents: true, currency: true } } },
     });
     return Promise.all(rows.map((row) => this.toGoal(row)));
   }
 
-  async findOne(id: string): Promise<Goal> {
-    const row = await this.prisma.goal.findUnique({
-      where: { id },
+  async findOne(userId: string, id: string): Promise<Goal> {
+    const row = await this.prisma.goal.findFirst({
+      where: { id, userId },
       include: { deposits: { select: { amountCents: true, currency: true } } },
     });
     if (!row) {
@@ -130,8 +132,8 @@ export class GoalsService {
     return await this.toGoal(row);
   }
 
-  async update(id: string, dto: UpdateGoalDto): Promise<Goal> {
-    await this.ensureExists(id);
+  async update(userId: string, id: string, dto: UpdateGoalDto): Promise<Goal> {
+    await this.ensureExists(userId, id);
     const row = await this.prisma.goal.update({
       where: { id },
       data: {
@@ -150,14 +152,14 @@ export class GoalsService {
     return await this.toGoal(row);
   }
 
-  async remove(id: string): Promise<void> {
-    await this.ensureExists(id);
+  async remove(userId: string, id: string): Promise<void> {
+    await this.ensureExists(userId, id);
     // onDelete: Cascade no schema remove os deposits junto.
     await this.prisma.goal.delete({ where: { id } });
   }
 
-  private async ensureExists(id: string): Promise<void> {
-    const count = await this.prisma.goal.count({ where: { id } });
+  private async ensureExists(userId: string, id: string): Promise<void> {
+    const count = await this.prisma.goal.count({ where: { id, userId } });
     if (count === 0) {
       throw new NotFoundException(`Meta ${id} não encontrada`);
     }

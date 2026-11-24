@@ -32,9 +32,12 @@ export class CurrencyService {
 
   private async fetchRates(base: Currency): Promise<ExchangeRates> {
     const symbols = CURRENCIES.filter((c) => c !== base).join(',');
-    const res = await fetch(`${FRANKFURTER_URL}?base=${base}&symbols=${symbols}`, {
-      signal: AbortSignal.timeout(5000),
-    });
+    const res = await fetch(
+      `${FRANKFURTER_URL}?base=${base}&symbols=${symbols}`,
+      {
+        signal: AbortSignal.timeout(5000),
+      },
+    );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const body = (await res.json()) as {
       date: string;

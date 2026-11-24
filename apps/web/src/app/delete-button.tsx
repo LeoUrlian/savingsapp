@@ -22,7 +22,10 @@ export function DeleteButton({
     if (!window.confirm(confirmText)) return;
     setBusy(true);
     try {
-      const res = await fetch(`${API_URL}${path}`, { method: "DELETE" });
+      const res = await fetch(`${API_URL}${path}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
       if (!res.ok) throw new Error(`Erro ${res.status}`);
       router.refresh();
     } catch (err) {

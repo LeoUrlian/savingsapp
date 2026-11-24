@@ -111,3 +111,28 @@ AI_BASE_URL=https://api.groq.com/openai/v1
 Para listar os modelos da sua conta no Groq: `GET https://api.groq.com/openai/v1/models`. Use um modelo de chat (evite `whisper`, `tts` e `guard`).
 
 Também nesta fatia: botão **Editar** em cada meta (nome, valor-alvo e data-alvo).
+
+## Login e segurança (Fatia 5)
+
+- **Contas:** `POST /auth/register`, `POST /auth/login`, `POST /auth/logout` e `GET /auth/me`. No front, as telas são `/login` e `/cadastro`.
+- **Senha:** só o hash é guardado (scrypt, com sal). Mínimo de 8 caracteres.
+- **Sessão:** cookie `session` com `httpOnly` e `SameSite=Lax`, válido por 7 dias. Em produção também `Secure` (só HTTPS). No banco fica só o SHA-256 do token, então um vazamento do banco não entrega sessões válidas. Sair apaga a sessão no servidor.
+- **Cada pessoa vê só as suas metas.** Meta, aporte, métricas e IA checam o dono. Meta de outra pessoa responde 404.
+- **Tudo exige login**, menos `/health`, `/auth/register` e `/auth/login`.
+- **Tentativas de login:** 5 falhas em 15 minutos para o mesmo IP e e-mail dão erro 429. O limite fica na memória da API (zera ao reiniciar e não vale entre várias réplicas).
+- **CORS:** só a origem do front, com cookie. Padrão `http://localhost:3000`; em produção defina `WEB_ORIGIN`.
+- **Metas antigas:** as criadas antes do login não têm dono. A **primeira conta** criada herda todas. Crie a sua antes de qualquer outra.
+- No Insomnia, faça `POST /auth/login` primeiro. Ele guarda o cookie e o envia nas outras chamadas.
+
+Ainda não tem: recuperar senha, confirmar e-mail, 2 fatores.
+
+## PWA (Fatia 5)
+
+O app pode ser instalado (no Chrome: ícone de instalar na barra de endereço; no celular: "Adicionar à tela inicial").
+
+- `apps/web/src/app/manifest.ts`: nome, cores e ícones.
+- `apps/web/public/icons/`: ícones PNG 192 e 512, gerados por `node apps/web/scripts/make-icons.mjs` (sem dependências).
+- `apps/web/public/sw.js`: service worker **mínimo**. Só mostra `offline.html` ("Sem conexão") quando a rede cai ao abrir uma tela.
+- O service worker **não guarda** páginas nem respostas da API. São dados financeiros de uma conta logada, e um cache poderia mostrar o saldo de uma pessoa a outra no mesmo aparelho. Por isso o app **não funciona offline**; só avisa.
+- O service worker só é registrado em produção (`pnpm --filter @savings/web build` e `start`). Em `dev` ele fica desligado.
+- O PWA instalável exige HTTPS. `localhost` é aceito como exceção.

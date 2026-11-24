@@ -93,7 +93,11 @@ describe('CurrencyService', () => {
   });
 
   it('trata resposta HTTP de erro como falha', async () => {
-    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({}) });
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({}),
+    });
 
     await expect(service.getRates('BRL')).rejects.toBeInstanceOf(
       BadGatewayException,

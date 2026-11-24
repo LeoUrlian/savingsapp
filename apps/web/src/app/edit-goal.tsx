@@ -34,6 +34,7 @@ export function EditGoal({ goal }: { goal: Goal }) {
     try {
       const res = await fetch(`${API_URL}/goals/${goal.id}`, {
         method: "PATCH",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,

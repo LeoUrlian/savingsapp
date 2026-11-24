@@ -1,5 +1,6 @@
 import type { Currency, Goal } from "@savings/shared";
 import { Suspense } from "react";
+import { apiFetch } from "../lib/api";
 import { formatMoney } from "../lib/money";
 import { DepositForm } from "./deposit-form";
 import { DepositsList } from "./deposits-list";
@@ -8,11 +9,9 @@ import { EditGoal } from "./edit-goal";
 import { ConvertedAmount } from "./converted-amount";
 import { GoalStatsPanel } from "./goal-stats";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
-
 async function getGoals(): Promise<Goal[] | null> {
   try {
-    const res = await fetch(`${API_URL}/goals`, { cache: "no-store" });
+    const res = await apiFetch("/goals");
     if (!res.ok) return null;
     return (await res.json()) as Goal[];
   } catch {
@@ -94,7 +93,9 @@ export async function GoalsList({ display }: { display?: Currency }) {
             </Suspense>
             <DepositForm goalId={goal.id} currency={goal.baseCurrency} />
             <Suspense
-              fallback={<p className="mt-3 text-sm text-zinc-500">Carregando…</p>}
+              fallback={
+                <p className="mt-3 text-sm text-zinc-500">Carregando…</p>
+              }
             >
               <DepositsList goalId={goal.id} />
             </Suspense>

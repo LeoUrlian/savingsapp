@@ -1,14 +1,12 @@
 import type { Currency, ExchangeRates } from "@savings/shared";
+import { apiFetch } from "../lib/api";
 import { formatMoney } from "../lib/money";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 const ALL: Currency[] = ["BRL", "USD", "EUR"];
 
 async function getRates(base: Currency): Promise<ExchangeRates | null> {
   try {
-    const res = await fetch(`${API_URL}/rates?base=${base}`, {
-      cache: "no-store",
-    });
+    const res = await apiFetch(`/rates?base=${base}`);
     if (!res.ok) return null;
     return (await res.json()) as ExchangeRates;
   } catch {

@@ -27,6 +27,7 @@ export function GoalForm() {
     try {
       const res = await fetch(`${API_URL}/goals`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: String(data.get("name")).trim(),

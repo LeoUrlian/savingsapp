@@ -33,6 +33,7 @@ export function DepositForm({
     try {
       const res = await fetch(`${API_URL}/goals/${goalId}/deposits`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amountCents: Math.round(value * 100),
@@ -50,7 +51,10 @@ export function DepositForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-3 flex flex-wrap items-center gap-2">
+    <form
+      onSubmit={onSubmit}
+      className="mt-3 flex flex-wrap items-center gap-2"
+    >
       <input
         name="amount"
         required

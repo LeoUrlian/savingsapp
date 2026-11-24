@@ -1,7 +1,10 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import type { HealthResponse } from "@savings/shared";
+import { getMe } from "../lib/api";
 import { GoalForm } from "./goal-form";
 import { GoalsSection } from "./goals-section";
+import { LogoutButton } from "./logout-button";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
@@ -61,6 +64,45 @@ function ApiStatusFallback() {
   );
 }
 
+/** Só aparece para quem está logado; quem não está vai para /login. */
+async function Dashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ moeda?: string }>;
+}) {
+  const me = await getMe();
+  if (me === null) redirect("/login");
+
+  return (
+    <>
+      <div className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-400">
+        {me === "offline" ? (
+          <span className="text-red-500">Não consegui falar com a API.</span>
+        ) : (
+          <>
+            <span>{me.email}</span>
+            <LogoutButton />
+          </>
+        )}
+      </div>
+
+      {me !== "offline" && (
+        <section className="flex w-full max-w-2xl flex-col gap-4">
+          <h2 className="text-xl font-semibold">Minhas metas</h2>
+          <GoalForm />
+          <Suspense
+            fallback={
+              <p className="text-sm text-zinc-500">Carregando metas…</p>
+            }
+          >
+            <GoalsSection searchParams={searchParams} />
+          </Suspense>
+        </section>
+      )}
+    </>
+  );
+}
+
 export default function Home({
   searchParams,
 }: {
@@ -80,18 +122,12 @@ export default function Home({
         <ApiStatus />
       </Suspense>
 
-      <section className="flex w-full max-w-2xl flex-col gap-4">
-        <h2 className="text-xl font-semibold">Minhas metas</h2>
-        <GoalForm />
-        <Suspense
-          fallback={<p className="text-sm text-zinc-500">Carregando metas…</p>}
-        >
-          <GoalsSection searchParams={searchParams} />
-        </Suspense>
-      </section>
+      <Suspense fallback={<p className="text-sm text-zinc-500">Carregando…</p>}>
+        <Dashboard searchParams={searchParams} />
+      </Suspense>
 
       <p className="text-xs text-zinc-400 dark:text-zinc-600">
-        Fatia 0 · monorepo Next + Nest + TypeScript ponta a ponta
+        Fatia 5 · login e sessão por cookie
       </p>
     </div>
   );

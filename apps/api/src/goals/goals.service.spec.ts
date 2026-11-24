@@ -24,7 +24,7 @@ function makeService(deposits: Deposit[], baseCurrency: Currency = 'BRL') {
     deposits,
   };
   const prisma = {
-    goal: { findUnique: vi.fn(async () => row) },
+    goal: { findFirst: vi.fn(async () => row) },
   };
   const service = new GoalsService(
     prisma as unknown as PrismaService,
@@ -40,7 +40,7 @@ describe('GoalsService - soma de aportes', () => {
       { amountCents: 2_500, currency: 'BRL' },
     ]);
 
-    const goal = await service.findOne('goal-1');
+    const goal = await service.findOne('user-1', 'goal-1');
 
     expect(goal.savedAmountCents).toBe(12_500);
     expect(getRates).not.toHaveBeenCalled();
@@ -52,7 +52,7 @@ describe('GoalsService - soma de aportes', () => {
       { amountCents: 1_000, currency: 'USD' },
     ]);
 
-    const goal = await service.findOne('goal-1');
+    const goal = await service.findOne('user-1', 'goal-1');
 
     expect(goal.savedAmountCents).toBe(5_000);
     expect(getRates).toHaveBeenCalledWith('BRL');
@@ -66,7 +66,7 @@ describe('GoalsService - soma de aportes', () => {
       { amountCents: 500, currency: 'EUR' },
     ]);
 
-    const goal = await service.findOne('goal-1');
+    const goal = await service.findOne('user-1', 'goal-1');
 
     expect(goal.savedAmountCents).toBe(20_000);
   });
@@ -81,7 +81,7 @@ describe('GoalsService - soma de aportes', () => {
     }));
     const prisma = {
       goal: {
-        findUnique: vi.fn(async () => ({
+        findFirst: vi.fn(async () => ({
           id: 'g',
           name: 'x',
           targetAmountCents: 1000,
@@ -97,7 +97,7 @@ describe('GoalsService - soma de aportes', () => {
       { getRates } as unknown as CurrencyService,
     );
 
-    const goal = await service.findOne('g');
+    const goal = await service.findOne('user-1', 'g');
 
     // 100 / 0,3 = 333,33... -> 333
     expect(goal.savedAmountCents).toBe(333);
@@ -107,7 +107,7 @@ describe('GoalsService - soma de aportes', () => {
   it('meta sem aportes tem saldo zero', async () => {
     const { service } = makeService([]);
 
-    const goal = await service.findOne('goal-1');
+    const goal = await service.findOne('user-1', 'goal-1');
 
     expect(goal.savedAmountCents).toBe(0);
   });

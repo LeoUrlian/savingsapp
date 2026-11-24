@@ -21,8 +21,16 @@ describe('AppController (e2e)', () => {
     expect(res.body.status).toBe('ok');
   });
 
-  it('/rates?base=XXX (GET) rejeita moeda invalida', () => {
-    return request(app.getHttpServer()).get('/rates?base=XXX').expect(400);
+  it('/goals (GET) sem login responde 401', () => {
+    return request(app.getHttpServer()).get('/goals').expect(401);
+  });
+
+  it('/rates (GET) sem login responde 401', () => {
+    return request(app.getHttpServer()).get('/rates?base=BRL').expect(401);
+  });
+
+  it('/auth/me (GET) sem login responde 401', () => {
+    return request(app.getHttpServer()).get('/auth/me').expect(401);
   });
 
   afterEach(async () => {

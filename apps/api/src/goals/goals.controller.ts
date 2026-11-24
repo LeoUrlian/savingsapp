@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import type { Goal, GoalStats } from '@savings/shared';
 import { GoalsService } from './goals.service.js';
+import { CurrentUser } from '../auth/auth.guard.js';
+import type { AuthUser } from '../auth/auth.service.js';
 import { CreateGoalDto } from './dto/create-goal.dto.js';
 import { UpdateGoalDto } from './dto/update-goal.dto.js';
 
@@ -26,36 +28,49 @@ export class GoalsController {
   constructor(private readonly goalsService: GoalsService) {}
 
   @Post()
-  create(@Body() dto: CreateGoalDto): Promise<Goal> {
-    return this.goalsService.create(dto);
+  create(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: CreateGoalDto,
+  ): Promise<Goal> {
+    return this.goalsService.create(user.id, dto);
   }
 
   @Get()
-  findAll(): Promise<Goal[]> {
-    return this.goalsService.findAll();
+  findAll(@CurrentUser() user: AuthUser): Promise<Goal[]> {
+    return this.goalsService.findAll(user.id);
   }
 
   @Get(':id/stats')
-  stats(@Param('id') id: string): Promise<GoalStats> {
-    return this.goalsService.getStats(id);
+  stats(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+  ): Promise<GoalStats> {
+    return this.goalsService.getStats(user.id, id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Goal> {
-    return this.goalsService.findOne(id);
+  findOne(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+  ): Promise<Goal> {
+    return this.goalsService.findOne(user.id, id);
   }
 
   @Patch(':id')
   update(
+    @CurrentUser() user: AuthUser,
     @Param('id') id: string,
     @Body() dto: UpdateGoalDto,
   ): Promise<Goal> {
-    return this.goalsService.update(id, dto);
+    return this.goalsService.update(user.id, id, dto);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id') id: string): Promise<void> {
-    return this.goalsService.remove(id);
+  remove(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+  ): Promise<void> {
+    return this.goalsService.remove(user.id, id);
   }
 }

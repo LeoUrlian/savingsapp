@@ -10,10 +10,13 @@ info:
 servers:
   - url: http://localhost:3333
     description: API local (pnpm --filter @savings/api start:dev)
+security:
+  - cookieAuth: []
 paths:
   /health:
     get:
       summary: Health check
+      security: []
       responses:
         "200": { description: API no ar }
   /rates:
@@ -39,6 +42,68 @@ paths:
                 rates: { BRL: 1, USD: 0.17528, EUR: 0.15914 }
         "400": { description: Moeda base invalida }
         "502": { description: Servico de cambio indisponivel e sem cotacao guardada }
+  /auth/register:
+    post:
+      summary: Criar conta e entrar
+      description: >
+        Cria a conta e ja devolve o cookie de sessao (session). A primeira
+        conta do sistema herda as metas criadas antes do login existir.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Credentials"
+            example:
+              email: voce@exemplo.com
+              password: uma-senha-com-8-ou-mais
+      responses:
+        "201":
+          description: Conta criada. Define o cookie session (httpOnly).
+          content:
+            application/json:
+              example: { id: "uuid", email: "voce@exemplo.com" }
+        "400": { description: E-mail invalido ou senha com menos de 8 caracteres }
+        "409": { description: E-mail ja cadastrado }
+  /auth/login:
+    post:
+      summary: Entrar
+      description: >
+        Define o cookie session (httpOnly, SameSite=Lax, 7 dias; Secure em
+        producao). Apos 5 falhas em 15 minutos para o mesmo IP e e-mail, a API
+        responde 429. O Insomnia guarda o cookie sozinho.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Credentials"
+      responses:
+        "200":
+          description: Logado
+          content:
+            application/json:
+              example: { id: "uuid", email: "voce@exemplo.com" }
+        "401": { description: E-mail ou senha incorretos (a mesma mensagem nos dois casos) }
+        "429": { description: Muitas tentativas }
+  /auth/logout:
+    post:
+      summary: Sair (apaga a sessao no servidor e o cookie)
+      responses:
+        "204": { description: Saiu }
+        "401": { description: Sem sessao valida }
+  /auth/me:
+    get:
+      summary: Quem esta logado
+      responses:
+        "200":
+          description: Usuario
+          content:
+            application/json:
+              example: { id: "uuid", email: "voce@exemplo.com" }
+        "401": { description: Sem sessao valida }
   /goals:
     get:
       summary: Listar metas
@@ -192,6 +257,12 @@ paths:
         "204": { description: Removido }
         "404": { description: Aporte não encontrado }
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session
+      description: Cookie definido por /auth/login ou /auth/register.
   parameters:
     GoalId:
       name: goalId
@@ -200,6 +271,12 @@ components:
       description: id da meta (cole o id retornado ao criar uma meta)
       schema: { type: string }
   schemas:
+    Credentials:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 8, maxLength: 200 }
     CreateGoal:
       type: object
       required: [name, targetAmountCents]

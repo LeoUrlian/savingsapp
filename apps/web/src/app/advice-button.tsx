@@ -17,6 +17,7 @@ export function AdviceButton({ goalId }: { goalId: string }) {
     try {
       const res = await fetch(`${API_URL}/goals/${goalId}/advice`, {
         method: "POST",
+        credentials: "include",
       });
       if (res.status === 503) {
         throw new Error(
@@ -27,7 +28,9 @@ export function AdviceButton({ goalId }: { goalId: string }) {
         const body = (await res.json().catch(() => null)) as {
           message?: string;
         } | null;
-        throw new Error(body?.message ?? `A IA não respondeu (erro ${res.status}).`);
+        throw new Error(
+          body?.message ?? `A IA não respondeu (erro ${res.status}).`,
+        );
       }
       setAdvice((await res.json()) as GoalAdvice);
     } catch (err) {
