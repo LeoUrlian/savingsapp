@@ -175,3 +175,51 @@ describe('groupByMonth (via computeGoalStats.monthly)', () => {
     ]);
   });
 });
+
+describe('requiredMonthlyCents', () => {
+  const saved = [{ amountCents: 40_000, createdAt: day(30) }];
+
+  it('divide o que falta pelos meses até a data-alvo', () => {
+    // Faltam 60.000. Prazo: 2 meses médios (60,875 dias).
+    const s = computeGoalStats(
+      input({ targetDate: day(-60.875), deposits: saved }),
+    );
+
+    expect(s.requiredMonthlyCents).toBe(30_000);
+  });
+
+  it('prazo menor que 1 mês conta como 1 mês', () => {
+    const s = computeGoalStats(input({ targetDate: day(-5), deposits: saved }));
+
+    expect(s.requiredMonthlyCents).toBe(60_000);
+  });
+
+  it('prazo já vencido: valor que falta inteiro', () => {
+    const s = computeGoalStats(input({ targetDate: day(10), deposits: saved }));
+
+    expect(s.requiredMonthlyCents).toBe(60_000);
+  });
+
+  it('ausente sem data-alvo', () => {
+    const s = computeGoalStats(input({ deposits: saved }));
+
+    expect(s.requiredMonthlyCents).toBeUndefined();
+  });
+
+  it('ausente com a meta atingida', () => {
+    const s = computeGoalStats(
+      input({
+        targetDate: day(-60),
+        deposits: [{ amountCents: 100_000, createdAt: day(10) }],
+      }),
+    );
+
+    expect(s.requiredMonthlyCents).toBeUndefined();
+  });
+
+  it('meta sem aportes: precisa guardar o valor todo, dividido pelo prazo', () => {
+    const s = computeGoalStats(input({ targetDate: day(-60.875) }));
+
+    expect(s.requiredMonthlyCents).toBe(50_000);
+  });
+});

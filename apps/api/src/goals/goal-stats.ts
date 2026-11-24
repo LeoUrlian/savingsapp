@@ -106,6 +106,17 @@ export function computeGoalStats(input: StatsInput): GoalStats {
     }
   }
 
+  let requiredMonthlyCents: number | undefined;
+  if (targetDate && !reached) {
+    const monthsLeft = Math.max(
+      1,
+      (targetDate.getTime() - now.getTime()) / DAY_MS / MONTH_DAYS,
+    );
+    requiredMonthlyCents = Math.ceil(
+      (targetAmountCents - savedAmountCents) / monthsLeft,
+    );
+  }
+
   let onTrack: boolean | undefined;
   if (targetDate) {
     if (reached) onTrack = true;
@@ -125,6 +136,10 @@ export function computeGoalStats(input: StatsInput): GoalStats {
     history,
     monthly: groupByMonth(deposits, now),
     projectedDate,
+    requiredMonthlyCents,
+    daysToTarget: targetDate
+      ? Math.round((targetDate.getTime() - now.getTime()) / DAY_MS)
+      : undefined,
     reached,
     onTrack,
   };

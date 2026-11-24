@@ -4,6 +4,7 @@ import { formatMoney } from "../lib/money";
 import { DepositForm } from "./deposit-form";
 import { DepositsList } from "./deposits-list";
 import { DeleteButton } from "./delete-button";
+import { EditGoal } from "./edit-goal";
 import { ConvertedAmount } from "./converted-amount";
 import { GoalStatsPanel } from "./goal-stats";
 
@@ -55,6 +56,7 @@ export async function GoalsList({ display }: { display?: Currency }) {
               <h3 className="font-medium">{goal.name}</h3>
               <span className="flex items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
                 {pct}%
+                <EditGoal goal={goal} />
                 <DeleteButton
                   path={`/goals/${goal.id}`}
                   label="Apagar meta"
@@ -72,7 +74,7 @@ export async function GoalsList({ display }: { display?: Currency }) {
               {formatMoney(goal.savedAmountCents, goal.baseCurrency)} de{" "}
               {formatMoney(goal.targetAmountCents, goal.baseCurrency)}
               {goal.targetDate
-                ? ` · até ${new Date(goal.targetDate).toLocaleDateString("pt-BR")}`
+                ? ` · até ${new Date(goal.targetDate).toLocaleDateString("pt-BR", { timeZone: "UTC" })}`
                 : ""}
             </p>
             <Suspense fallback={null}>

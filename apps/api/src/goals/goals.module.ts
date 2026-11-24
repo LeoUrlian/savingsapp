@@ -9,5 +9,6 @@ import { CurrencyModule } from '../currency/currency.module.js';
   imports: [CurrencyModule],
   controllers: [GoalsController, DepositsController],
   providers: [GoalsService, DepositsService],
+  exports: [GoalsService],
 })
 export class GoalsModule {}

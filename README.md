@@ -29,7 +29,7 @@ Cada fatia roda de ponta a ponta antes de avançar.
 - **Fatia 2** (feito) — Multi-moeda: integrar API de câmbio e exibir metas em BRL/USD/EUR.
 - **Fatia 3** (feito) — Gráficos e métricas: progresso da meta, histórico de aportes,
   projeção de quando a meta é alcançada.
-- **Fatia 4** — IA: "quanto guardar por mês para bater X até a data Y" + análise
+- **Fatia 4** (feito) — IA: "quanto guardar por mês para bater X até a data Y" + análise
   de ritmo de poupança.
 - **Fatia 5** — Auth + segurança (dados financeiros) + PWA + deploy cloud-native.
 
@@ -91,3 +91,23 @@ pnpm --filter @savings/api test   # testes da API
 - Situação: "No prazo" ou "Atrasada" só aparece se a meta tem data-alvo.
 - Os meses são contados no fuso de Brasília (UTC-3).
 - No front, cada meta mostra 4 números, uma linha com o saldo e a projeção, e barras de aportes por mês (últimos 12). Os gráficos são SVG puro, sem biblioteca.
+## IA (Fatia 4)
+
+- **Quanto guardar por mês** é uma conta, sem IA: o que falta dividido pelos meses até a data-alvo (mínimo de 1 mês). Aparece em `GET /goals/:id/stats` e na tela como "Guardar por mês".
+- `POST /goals/:id/advice` pede à IA uma análise curta da meta (até 120 palavras). O botão fica em cada meta: "Pedir análise da IA".
+- A IA recebe só números já formatados. Nome da meta, ids e datas dos aportes não saem do servidor. A chave fica na API e nunca vai para o front.
+- Cada clique pode gastar crédito do provedor. Sem a configuração abaixo, a rota responde 503 e o resto do app funciona.
+- A IA não recomenda investimentos. Ela só explica os números. Não é aconselhamento financeiro.
+
+Configuração no `.env` (copie também para `apps/api/.env`). Serve qualquer provedor com API no formato da OpenAI, inclusive os com plano grátis:
+
+```
+OPENAI_API_KEY=sua-chave
+AI_MODEL=id-do-modelo
+# opcional; o padrão é a OpenAI. Exemplo com o Groq:
+AI_BASE_URL=https://api.groq.com/openai/v1
+```
+
+Para listar os modelos da sua conta no Groq: `GET https://api.groq.com/openai/v1/models`. Use um modelo de chat (evite `whisper`, `tts` e `guard`).
+
+Também nesta fatia: botão **Editar** em cada meta (nome, valor-alvo e data-alvo).

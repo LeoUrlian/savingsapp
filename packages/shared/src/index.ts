@@ -78,8 +78,24 @@ export interface GoalStats {
   monthly: { month: string; amountCents: number }[];
   /** Data estimada para atingir a meta, no ritmo atual. Ausente se não dá para estimar. */
   projectedDate?: string;
+  /**
+   * Quanto guardar por mês, daqui para frente, para bater a meta na data-alvo.
+   * Ausente sem data-alvo ou com a meta já atingida. Mínimo de 1 mês na conta:
+   * se o prazo é menor que isso (ou já passou), é o valor que falta inteiro.
+   */
+  requiredMonthlyCents?: number;
+  /** Dias até a data-alvo. Negativo se o prazo já passou. Ausente sem data-alvo. */
+  daysToTarget?: number;
   /** true se a meta foi atingida. */
   reached: boolean;
   /** Com data-alvo: se a data projetada é igual ou anterior a ela. */
   onTrack?: boolean;
+}
+
+/** Resposta do endpoint POST /goals/:id/advice */
+export interface GoalAdvice {
+  /** Texto da análise, em português. */
+  text: string;
+  /** Modelo que gerou o texto. */
+  model: string;
 }

@@ -101,7 +101,9 @@ paths:
         ritmo constante. projectedDate some se a meta ja foi atingida ou nao ha
         aportes. onTrack so existe se a meta tem data-alvo. Os meses (monthly)
         sao contados no fuso de Brasilia (UTC-3), do primeiro aporte ate o mes atual, com meses
-        vazios em 0.
+        vazios em 0. requiredMonthlyCents e quanto guardar por mes para bater a
+        data-alvo (prazo minimo de 1 mes na conta); daysToTarget e negativo se o
+        prazo ja passou. Os dois so existem com data-alvo.
       parameters:
         - $ref: "#/components/parameters/GoalId"
       responses:
@@ -125,9 +127,34 @@ paths:
                   - { month: "2026-10", amountCents: 0 }
                   - { month: "2026-11", amountCents: 10000 }
                 projectedDate: "2027-04-12T12:00:00.000Z"
+                requiredMonthlyCents: 30000
+                daysToTarget: 60
                 reached: false
                 onTrack: true
         "404": { description: Meta nao encontrada }
+  /goals/{goalId}/advice:
+    post:
+      summary: Analise da meta escrita por IA
+      description: >
+        Gera um texto curto (ate 120 palavras) sobre a situacao da meta. A IA
+        recebe so numeros ja formatados (valores em reais, datas dia/mes/ano e o
+        prazo por extenso). Nome da meta, ids e datas dos aportes nao saem do
+        servidor. Usa qualquer provedor no formato da OpenAI. Configure no .env
+        - OPENAI_API_KEY, AI_MODEL e, opcionalmente, AI_BASE_URL (padrao
+        https://api.openai.com/v1). Cada chamada pode gastar credito do provedor.
+      parameters:
+        - $ref: "#/components/parameters/GoalId"
+      responses:
+        "200":
+          description: Analise
+          content:
+            application/json:
+              example:
+                text: "Voce ja guardou R$ 10.000,00 de R$ 20.000,00 (50%)..."
+                model: openai/gpt-oss-20b
+        "404": { description: Meta nao encontrada }
+        "502": { description: Provedor de IA indisponivel ou recusou }
+        "503": { description: IA nao configurada (faltam OPENAI_API_KEY ou AI_MODEL) }
   /goals/{goalId}/deposits:
     get:
       summary: Listar aportes da meta

@@ -1,5 +1,6 @@
 import type { GoalStats } from "@savings/shared";
 import { formatMoney } from "../lib/money";
+import { AdviceButton } from "./advice-button";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
@@ -214,7 +215,7 @@ export async function GoalStatsPanel({ goalId }: { goalId: string }) {
 
   return (
     <div className="mt-3 border-t border-zinc-200 pt-3 dark:border-zinc-800">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Metric label="Aportes" value={String(stats.depositCount)} />
         <Metric
           label="Ritmo por mês"
@@ -231,9 +232,16 @@ export async function GoalStatsPanel({ goalId }: { goalId: string }) {
           }
         />
         <Metric label="Situação" value={status} />
+        {stats.requiredMonthlyCents !== undefined && (
+          <Metric
+            label="Guardar por mês"
+            value={formatMoney(stats.requiredMonthlyCents, stats.currency)}
+          />
+        )}
       </div>
       <Chart stats={stats} />
       <MonthlyBars stats={stats} />
+      <AdviceButton goalId={stats.goalId} />
     </div>
   );
 }
